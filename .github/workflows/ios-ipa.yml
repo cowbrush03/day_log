@@ -1,0 +1,37 @@
+name: Build unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.44.6'
+          cache: true
+      - run: flutter pub get
+      - name: Build iOS (no codesign)
+        run: >-
+          flutter build ios --release --no-codesign
+          --dart-define=API_SERVER_ADDRESS=http://192.168.137.1:8000
+          --dart-define=RESULT_WEB_ORIGIN=http://192.168.137.1:3000
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qry day-log-unsigned.ipa Payload
+          shasum -a 256 day-log-unsigned.ipa > day-log-unsigned.ipa.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: day-log-ios-unsigned
+          path: |
+            day-log-unsigned.ipa
+            day-log-unsigned.ipa.sha256
