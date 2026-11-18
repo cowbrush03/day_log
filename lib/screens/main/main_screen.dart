@@ -24,6 +24,8 @@ class _MainScreenState extends State<MainScreen> {
   static const double _tabBarOpacity = 0.7;
   static const double _qrButtonBlur = 16.0;
   static const double _qrButtonOpacity = 0.7;
+  // iOS에서 화면 하단과 메뉴 바 사이 간격
+  static const double _iosBottomGap = 12.0;
 
   int _selectedIndex = 0;
   int _recordsRevision = 0;
@@ -45,8 +47,10 @@ class _MainScreenState extends State<MainScreen> {
       isIOS ? CupertinoIcons.person_fill : Icons.person,
     ];
 
-    // 각 폰마다 바텀 네비게이터 바가 시스템 자체의 바텀 네비게이터바에 바로 붙어 있지 않도록 하기 위함
+    // Android: 시스템 내비게이션 바 위에 간격을 두고 배치
+    // iOS: 시스템 내비게이션 바가 없으므로(홈 인디케이터만 표시) 화면 하단 기준으로 배치
     final systemBottom = MediaQuery.viewPaddingOf(context).bottom;
+    final bottomGap = isIOS ? _iosBottomGap : systemBottom + 12;
 
     return Scaffold(
       // 바와 QR 버튼 주위로 본문이 비치도록 아래까지 확장
@@ -66,10 +70,10 @@ class _MainScreenState extends State<MainScreen> {
 
       bottomNavigationBar: SafeArea(
         top: false,
-        // 시스템 하단 영역 위에 추가 간격 확보
-        minimum: EdgeInsets.only(bottom: systemBottom + 12),
+        // iOS는 하단 안전 영역을 무시하고 화면 하단에서 bottomGap만큼 띄움
+        bottom: !isIOS,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: EdgeInsets.fromLTRB(20, 0, 20, bottomGap),
           child: Row(
             children: [
               // 1. 홈·통계·마이 네비게이션 바
