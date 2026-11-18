@@ -18,12 +18,21 @@ class ApiService {
   // 서버 주소 기본값 (개발자 모드에서 변경 가능)
   static const String defaultServerAddress = String.fromEnvironment(
     'API_SERVER_ADDRESS', defaultValue: 'http://192.168.137.1:8000');
-  static const String resultWebOrigin = String.fromEnvironment('RESULT_WEB_ORIGIN');
+  // 학습 결과 웹 주소 기본값 (개발자 모드에서 변경 가능)
+  static const String defaultResultWebOrigin = String.fromEnvironment(
+    'RESULT_WEB_ORIGIN', defaultValue: 'http://192.168.137.1:3000');
+  // 현재 적용된 학습 결과 웹 주소 (QR 주소 검증에 사용)
+  static String resultWebOrigin = defaultResultWebOrigin;
   static const String _apiPath = '/api/v1';
 
   // 서버 주소 변경 (이후 모든 요청에 적용됨)
   static void changeServerAddress(String address) {
     dio.options.baseUrl = '$address$_apiPath';
+  }
+
+  // 학습 결과 웹 주소 변경 (이후 QR 검증에 적용됨)
+  static void changeResultWebOrigin(String origin) {
+    resultWebOrigin = origin;
   }
 
   // 1. 로그인 로직

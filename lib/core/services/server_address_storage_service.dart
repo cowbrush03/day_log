@@ -8,6 +8,9 @@ class ServerAddressStorageService {
   //서버 주소 저장에 사용할 키
   static const String _serverAddressKey = 'server_address';
 
+  //학습 결과 웹 주소 저장에 사용할 키
+  static const String _resultWebOriginKey = 'result_web_origin';
+
   // 1. 서버 주소 저장하기
   Future<void> saveServerAddress(String address) async {
     await storage.write(key: _serverAddressKey, value: address);
@@ -16,5 +19,15 @@ class ServerAddressStorageService {
   // 2. 저장된 서버 주소 읽기 (없으면 null)
   Future<String?> readServerAddress() async {
     return await storage.read(key: _serverAddressKey);
+  }
+
+  // 3. 학습 결과 웹 주소 저장하기
+  Future<void> saveResultWebOrigin(String origin) async {
+    await storage.write(key: _resultWebOriginKey, value: origin);
+  }
+
+  // 4. 저장된 학습 결과 웹 주소 읽기 (없으면 null)
+  Future<String?> readResultWebOrigin() async {
+    return await storage.read(key: _resultWebOriginKey);
   }
 }

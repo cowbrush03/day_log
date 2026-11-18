@@ -20,6 +20,9 @@ class _DevModeScreenState extends State<DevModeScreen> {
   //서버 주소 입력창
   final TextEditingController _addressController = TextEditingController();
 
+  //학습 결과 웹 주소 입력창 (QR 주소 확인에 사용)
+  final TextEditingController _resultWebController = TextEditingController();
+
   //저장된 주소 확인 중 여부
   bool _isLoading = true;
 
@@ -32,18 +35,26 @@ class _DevModeScreenState extends State<DevModeScreen> {
   @override
   void dispose() {
     _addressController.dispose();
+    _resultWebController.dispose();
     super.dispose();
   }
 
   //저장된 서버 주소 불러오기
   Future<void> _loadSavedAddress() async {
     String address = ApiService.defaultServerAddress;
+    String resultWebOrigin = ApiService.defaultResultWebOrigin;
 
     try {
       final saved = await _storageService.readServerAddress();
 
       if (saved != null && saved.trim().isNotEmpty) {
         address = saved;
+      }
+
+      final savedWeb = await _storageService.readResultWebOrigin();
+
+      if (savedWeb != null && savedWeb.trim().isNotEmpty) {
+        resultWebOrigin = savedWeb;
       }
     } catch (e) {
       //읽지 못하면 기본 주소 사용
@@ -53,6 +64,7 @@ class _DevModeScreenState extends State<DevModeScreen> {
     if (!mounted) return;
 
     _addressController.text = address;
+    _resultWebController.text = resultWebOrigin;
 
     setState(() {
       _isLoading = false;
@@ -67,14 +79,13 @@ class _DevModeScreenState extends State<DevModeScreen> {
         .replaceAll(RegExp(r'/+$'), '')
         .replaceFirst(RegExp(r'/api/v1$'), '');
 
-    //http 또는 https 주소인지 확인
-    final uri = Uri.tryParse(address);
-    final isValid =
-        uri != null &&
-            (uri.scheme == 'http' || uri.scheme == 'https') &&
-            uri.host.isNotEmpty;
+    //공백, 끝의 /, 끝의 /results 제거
+    final resultWebOrigin = _resultWebController.text
+        .trim()
+        .replaceAll(RegExp(r'/+$'), '')
+        .replaceFirst(RegExp(r'/results$'), '');
 
-    if (!isValid) {
+    if (!_isHttpAddress(address)) {
       SnackBarHelper.show(
         context,
         '주소 형식이 올바르지 않아요. 예: http://10.0.2.2:8000',
@@ -82,12 +93,24 @@ class _DevModeScreenState extends State<DevModeScreen> {
       return;
     }
 
+    //QR 주소와 비교하므로 경로 없이 주소와 포트까지만 허용
+    if (!_isHttpAddress(resultWebOrigin) ||
+        Uri.parse(resultWebOrigin).path.isNotEmpty) {
+      SnackBarHelper.show(
+        context,
+        '학습 결과 웹 주소 형식이 올바르지 않아요. 예: http://10.0.2.2:3000',
+      );
+      return;
+    }
+
     //이번 실행에 바로 적용
     ApiService.changeServerAddress(address);
+    ApiService.changeResultWebOrigin(resultWebOrigin);
 
     try {
       //다음 실행에도 쓰도록 저장
       await _storageService.saveServerAddress(address);
+      await _storageService.saveResultWebOrigin(resultWebOrigin);
     } catch (e) {
       //저장에 실패해도 이번 실행에는 적용됨
       print('서버 주소 저장 오류: $e');
@@ -98,6 +121,40 @@ class _DevModeScreenState extends State<DevModeScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const SplashScreen()),
+    );
+  }
+
+  //http 또는 https 주소인지 확인
+  bool _isHttpAddress(String address) {
+    final uri = Uri.tryParse(address);
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
+
+  //주소 입력창 공통 꾸밈
+  InputDecoration _addressDecoration({
+    required String labelText,
+    required String hintText,
+    required String helperText,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      helperText: helperText,
+      filled: true,
+      fillColor: AppColor.surfaceCard,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColor.outline),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(
+          color: AppColor.primary,
+          width: 1.5,
+        ),
+      ),
     );
   }
 
@@ -129,7 +186,7 @@ class _DevModeScreenState extends State<DevModeScreen> {
               ),
               const SizedBox(height: 6),
               const Text(
-                '연결할 서버 주소를 확인하고\n다음으로 넘어가요.',
+                '연결할 서버 주소와 학습 결과 웹 주소를\n확인하고 다음으로 넘어가요.',
                 style: TextStyle(
                   fontSize: 15,
                   height: 1.4,
@@ -144,29 +201,30 @@ class _DevModeScreenState extends State<DevModeScreen> {
                 controller: _addressController,
                 keyboardType: TextInputType.url,
                 autocorrect: false,
-                decoration: InputDecoration(
+                decoration: _addressDecoration(
                   labelText: '서버 주소',
                   hintText: ApiService.defaultServerAddress,
                   helperText: '이 주소 뒤에 /api/v1을 붙여서 요청해요.',
-                  filled: true,
-                  fillColor: AppColor.surfaceCard,
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AppColor.outline),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(
-                      color: AppColor.primary,
-                      width: 1.5,
-                    ),
-                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // 3. 학습 결과 웹 주소 입력
+              TextField(
+                controller: _resultWebController,
+                keyboardType: TextInputType.url,
+                autocorrect: false,
+                decoration: _addressDecoration(
+                  labelText: '학습 결과 웹 주소',
+                  hintText: ApiService.defaultResultWebOrigin,
+                  helperText: '이 주소로 시작하는 학습 결과 QR만 인식해요.',
                 ),
               ),
 
               const SizedBox(height: 8),
 
-              // 3. 기본 주소로 되돌리기
+              // 4. 기본 주소로 되돌리기
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -176,6 +234,8 @@ class _DevModeScreenState extends State<DevModeScreen> {
                   onPressed: () {
                     _addressController.text =
                         ApiService.defaultServerAddress;
+                    _resultWebController.text =
+                        ApiService.defaultResultWebOrigin;
                   },
                   child: const Text('기본 주소로 되돌리기'),
                 ),
@@ -183,7 +243,7 @@ class _DevModeScreenState extends State<DevModeScreen> {
 
               const SizedBox(height: 16),
 
-              // 4. 시작 버튼
+              // 5. 시작 버튼
               SizedBox(
                 width: double.infinity,
                 height: 52,
