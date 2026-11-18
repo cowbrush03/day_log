@@ -19,8 +19,10 @@ class TopFadeBlur extends StatelessWidget {
   final Widget child;
   final double height;
 
-  // 위로 갈수록 강한 블러를 겹쳐 블러 경계가 드러나지 않도록 함
-  static const List<double> _blurSigmas = [1.5, 3.0, 5.0];
+  // 위로 갈수록 강한 블러를 잘게 겹쳐 단계별 경계가 드러나지 않도록 함
+  // 블러가 겹칠수록 누적되므로 맨 위는 약 1.5 × √8 ≈ 4.2 세기
+  static const int _blurSteps = 8;
+  static const double _stepBlur = 1.5;
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +41,17 @@ class TopFadeBlur extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                for (var i = 0; i < _blurSigmas.length; i++)
+                for (var i = 0; i < _blurSteps; i++)
                   Align(
                     alignment: Alignment.topCenter,
                     child: FractionallySizedBox(
-                      heightFactor: 1 - i / _blurSigmas.length,
+                      heightFactor: 1 - i / _blurSteps,
                       child: ClipRect(
                         child: BackdropFilter(
+                          // 각 단계는 직전 단계 위에 조금씩만 더 흐리게 겹침
                           filter: ImageFilter.blur(
-                            sigmaX: _blurSigmas[i],
-                            sigmaY: _blurSigmas[i],
+                            sigmaX: _stepBlur,
+                            sigmaY: _stepBlur,
                           ),
                           child: const SizedBox.expand(),
                         ),
@@ -62,7 +65,12 @@ class TopFadeBlur extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [color, color.withValues(alpha: 0)],
+                      colors: [
+                        color,
+                        color.withValues(alpha: 0.6),
+                        color.withValues(alpha: 0),
+                      ],
+                      stops: const [0, 0.35, 1],
                     ),
                   ),
                 ),

@@ -24,8 +24,8 @@ class _MainScreenState extends State<MainScreen> {
   static const double _tabBarOpacity = 0.7;
   static const double _qrButtonBlur = 16.0;
   static const double _qrButtonOpacity = 0.7;
-  // iOS에서 화면 하단과 메뉴 바 사이 간격
-  static const double _iosBottomGap = 12.0;
+  // iOS에서 화면 하단과 메뉴 바 사이 간격 (좌우 여백과 동일)
+  static const double _iosBottomGap = 20.0;
 
   int _selectedIndex = 0;
   int _recordsRevision = 0;
