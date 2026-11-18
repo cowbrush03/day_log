@@ -1,7 +1,7 @@
 import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/core/theme/app_color.dart';
 import 'package:day_log/core/utils/snack_bar_helper.dart';
-import 'package:day_log/core/widgets/top_fade_blur.dart';
+import 'package:day_log/core/widgets/top_fade.dart';
 import 'package:day_log/screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -333,7 +333,7 @@ class _MyScreenState extends State<MyScreen> {
 
     final hasPortfolio = _portfolioUrl.trim().isNotEmpty;
 
-    return TopFadeBlur(
+    return TopFade(
       color: AppColor.surfaceSunken,
       child: SafeArea(
         bottom: false,

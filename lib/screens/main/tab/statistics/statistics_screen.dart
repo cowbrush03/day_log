@@ -3,7 +3,7 @@ import 'package:day_log/core/models/statistics_model.dart';
 import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/core/services/api_service.dart';
 import 'package:day_log/core/theme/app_color.dart';
-import 'package:day_log/core/widgets/top_fade_blur.dart';
+import 'package:day_log/core/widgets/top_fade.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -340,8 +340,8 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             ),
           ),
           Expanded(
-            // 상단 탭 아래로 내용이 자연스럽게 사라지도록 블러 적용
-            child: TopFadeBlur(
+            // 상단 탭 아래로 내용이 자연스럽게 사라지도록 그라데이션 적용
+            child: TopFade(
               color: AppColor.background,
               child: TabBarView(
                 controller: _tabs,

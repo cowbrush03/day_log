@@ -47,10 +47,9 @@ class _MainScreenState extends State<MainScreen> {
       isIOS ? CupertinoIcons.person_fill : Icons.person,
     ];
 
-    // Android: 시스템 내비게이션 바 위에 간격을 두고 배치
+    // Android: 시스템 내비게이션 바 위에 간격을 두고 배치 (시스템 바 높이는 SafeArea가 확보)
     // iOS: 시스템 내비게이션 바가 없으므로(홈 인디케이터만 표시) 화면 하단 기준으로 배치
-    final systemBottom = MediaQuery.viewPaddingOf(context).bottom;
-    final bottomGap = isIOS ? _iosBottomGap : systemBottom + 12;
+    final bottomGap = isIOS ? _iosBottomGap : 12.0;
 
     return Scaffold(
       // 바와 QR 버튼 주위로 본문이 비치도록 아래까지 확장

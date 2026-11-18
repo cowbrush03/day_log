@@ -3,7 +3,7 @@ import 'package:day_log/core/providers/user_info_provider.dart';
 import 'package:day_log/core/services/api_service.dart';
 import 'package:day_log/core/theme/app_color.dart';
 import 'package:day_log/core/utils/time_formatter.dart';
-import 'package:day_log/core/widgets/top_fade_blur.dart';
+import 'package:day_log/core/widgets/top_fade.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -407,7 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
         '${_todayDate.month}월 ${_todayDate.day}일 '
         '${weekdays[_todayDate.weekday - 1]}요일';
 
-    return TopFadeBlur(
+    return TopFade(
       color: AppColor.background,
       child: SafeArea(
         bottom: false,
